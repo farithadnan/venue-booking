@@ -28,4 +28,22 @@ export interface Booking {
   venue?: Pick<Venue, 'id' | 'name' | 'location'>
 }
 
-export type { CreateBookingInput } from '@/lib/validations'
+export interface PaginatedResponse<T> {
+  data: T[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
+
+export interface ApiError {
+  error: string
+}
+
+export type BookingWithVenue = Booking & {
+  venue: Pick<Venue, 'id' | 'name' | 'location'>
+}
+
+export type { CreateBookingInput, UpdateBookingStatusInput } from '@/lib/validations'
