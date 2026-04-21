@@ -5,7 +5,9 @@ import { createBookingSchema, BOOKING_STATUSES } from '@/lib/validations'
 import { logger, newRequestId } from '@/lib/logger'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { sendBookingConfirmation } from '@/lib/email'
+import { deriveBookingPrice } from '@/lib/utils'
 import type { NextRequest } from 'next/server'
+import type { TimeSlot, PaxPackage } from '@/types'
 
 function generateReference(): string {
   const timestamp = Date.now().toString(36).toUpperCase()
@@ -89,7 +91,7 @@ export async function POST(request: NextRequest) {
 
   const { data: venue, error: venueError } = await supabase
     .from('venues')
-    .select('id, name')
+    .select('id, name, time_slots, pax_packages')
     .eq('id', input.venue_id)
     .single()
 
@@ -97,19 +99,40 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Venue not found' }, { status: 404 })
   }
 
+  const derived = deriveBookingPrice(
+    input.start_time,
+    input.end_time,
+    input.pax_package_label,
+    (venue.time_slots as TimeSlot[]) ?? [],
+    (venue.pax_packages as PaxPackage[]) ?? []
+  )
+
+  if (!derived) {
+    return Response.json(
+      { error: 'Selected time slot or guest package is no longer available' },
+      { status: 422 }
+    )
+  }
+
   let bookingId: string | null = null
 
   for (let attempt = 0; attempt < 3; attempt++) {
     const { data, error } = await supabase.rpc('create_booking_atomic', {
-      p_venue_id: input.venue_id,
-      p_user_name: input.user_name,
-      p_user_email: input.user_email,
-      p_event_name: input.event_name,
-      p_date: input.date,
-      p_start_time: input.start_time,
-      p_end_time: input.end_time,
-      p_notes: input.notes ?? null,
-      p_reference_number: generateReference(),
+      p_venue_id:          input.venue_id,
+      p_user_name:         input.user_name,
+      p_user_email:        input.user_email,
+      p_user_phone:        input.user_phone,
+      p_event_name:        input.event_name,
+      p_date:              input.date,
+      p_start_time:        input.start_time,
+      p_end_time:          input.end_time,
+      p_notes:             input.notes ?? null,
+      p_reference_number:  generateReference(),
+      p_guest_count:       input.guest_count,
+      p_pax_package_label: input.pax_package_label,
+      p_slot_price:        derived.slotPrice,
+      p_pax_price:         derived.paxPrice,
+      p_total_price:       derived.totalPrice,
     })
 
     if (!error) {
