@@ -6,8 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createBookingSchema, type CreateBookingInput } from '@/lib/validations'
-import { TIME_SLOTS_FALLBACK } from '@/lib/constants'
-import type { TimeSlot } from '@/types'
 import { useCreateBooking } from '@/hooks/useCreateBooking'
 import { toast } from '@/hooks/useToast'
 import { Button } from '@/components/ui/button'
@@ -17,18 +15,26 @@ import { Textarea } from '@/components/ui/textarea'
 import { Spinner } from '@/components/ui/spinner'
 import { DatePicker } from './date-picker'
 import { SlotPicker } from './slot-picker'
+import { PaxPicker } from './pax-picker'
+import { BookingSummary } from './booking-summary'
+import type { TimeSlot, PaxPackage } from '@/types'
+import { formatCurrency } from '@/lib/utils'
+import { CalendarCheck } from 'lucide-react'
 
 interface BookingFormProps {
   venueId: string
+  timeSlots: TimeSlot[]
+  paxPackages: PaxPackage[]
 }
 
-export function BookingForm({ venueId }: BookingFormProps) {
+export function BookingForm({ venueId, timeSlots, paxPackages }: BookingFormProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { submit, loading } = useCreateBooking()
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null)
+  const [selectedPax, setSelectedPax] = useState<PaxPackage | null>(null)
 
   const {
     register,
@@ -38,21 +44,21 @@ export function BookingForm({ venueId }: BookingFormProps) {
   } = useForm<CreateBookingInput>({
     resolver: zodResolver(createBookingSchema),
     defaultValues: { venue_id: venueId },
+    mode: 'onBlur',
   })
 
   useEffect(() => {
     const slotParam = searchParams.get('slot')
-    if (slotParam) {
-      const match = TIME_SLOTS_FALLBACK.find(
-        (s) => s.label.toLowerCase().replace(' ', '-') === slotParam
-      )
-      if (match) {
-        setSelectedSlot(match)
-        setValue('start_time', match.start_time)
-        setValue('end_time', match.end_time)
-      }
+    if (!slotParam) return
+    const match = timeSlots.find(
+      (s) => s.label.toLowerCase().replace(/\s+/g, '-') === slotParam
+    )
+    if (match) {
+      setSelectedSlot(match)
+      setValue('start_time', match.start_time)
+      setValue('end_time', match.end_time)
     }
-  }, [searchParams, setValue])
+  }, [searchParams, setValue, timeSlots])
 
   function handleDateChange(date: Date | undefined) {
     setSelectedDate(date)
@@ -63,6 +69,12 @@ export function BookingForm({ venueId }: BookingFormProps) {
     setSelectedSlot(slot)
     setValue('start_time', slot.start_time)
     setValue('end_time', slot.end_time)
+  }
+
+  function handlePaxChange(pkg: PaxPackage) {
+    setSelectedPax(pkg)
+    setValue('guest_count', pkg.min_pax)
+    setValue('pax_package_label', pkg.label)
   }
 
   async function onSubmit(data: CreateBookingInput) {
@@ -77,6 +89,22 @@ export function BookingForm({ venueId }: BookingFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
       <input type="hidden" {...register('venue_id')} />
+
+      {selectedSlot && (
+        <div className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-amber-900">Selected Package</p>
+            <p className="mt-0.5 text-base font-bold text-amber-800">
+              {selectedSlot.label} — {formatCurrency(selectedSlot.price)}
+              {selectedPax ? ` + ${formatCurrency(selectedPax.price)}` : ''}
+            </p>
+            <p className="text-xs text-amber-700">{selectedSlot.start_time} – {selectedSlot.end_time}</p>
+          </div>
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-600 text-white">
+            <CalendarCheck className="h-4 w-4" />
+          </div>
+        </div>
+      )}
 
       {/* Guest info */}
       <div className="space-y-4">
@@ -95,18 +123,32 @@ export function BookingForm({ venueId }: BookingFormProps) {
             )}
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="user_email">Email Address *</Label>
+            <Label htmlFor="user_phone">Phone Number *</Label>
             <Input
-              id="user_email"
-              type="email"
-              placeholder="you@example.com"
-              error={errors.user_email?.message}
-              {...register('user_email')}
+              id="user_phone"
+              type="tel"
+              placeholder="+60 12-345 6789"
+              error={errors.user_phone?.message}
+              {...register('user_phone')}
             />
-            {errors.user_email && (
-              <p className="text-xs text-red-500">{errors.user_email.message}</p>
+            {errors.user_phone && (
+              <p className="text-xs text-red-500">{errors.user_phone.message}</p>
             )}
           </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="user_email">Email Address *</Label>
+          <Input
+            id="user_email"
+            type="email"
+            placeholder="you@example.com"
+            error={errors.user_email?.message}
+            {...register('user_email')}
+          />
+          {errors.user_email && (
+            <p className="text-xs text-red-500">{errors.user_email.message}</p>
+          )}
         </div>
 
         <div className="space-y-1.5">
@@ -123,7 +165,7 @@ export function BookingForm({ venueId }: BookingFormProps) {
         </div>
       </div>
 
-      {/* Date */}
+      {/* Date & Time */}
       <div className="space-y-4">
         <h3 className="text-base font-semibold text-slate-900">Date & Time</h3>
         <div className="space-y-1.5">
@@ -140,14 +182,32 @@ export function BookingForm({ venueId }: BookingFormProps) {
         </div>
 
         <div className="space-y-1.5">
-          <Label>Time Slot *</Label>
+          <Label>
+            Time Slot *{' '}
+            <span className="text-xs font-normal text-slate-400">— affects total price</span>
+          </Label>
           <input type="hidden" {...register('start_time')} />
           <input type="hidden" {...register('end_time')} />
           <SlotPicker
-            slots={TIME_SLOTS_FALLBACK}
+            slots={timeSlots}
             value={selectedSlot}
             onChange={handleSlotChange}
             error={errors.start_time?.message}
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label>
+            Guest Count *{' '}
+            <span className="text-xs font-normal text-slate-400">— affects total price</span>
+          </Label>
+          <input type="hidden" {...register('guest_count', { valueAsNumber: true })} />
+          <input type="hidden" {...register('pax_package_label')} />
+          <PaxPicker
+            packages={paxPackages}
+            value={selectedPax}
+            onChange={handlePaxChange}
+            error={errors.pax_package_label?.message}
           />
         </div>
       </div>
@@ -165,11 +225,13 @@ export function BookingForm({ venueId }: BookingFormProps) {
         )}
       </div>
 
+      <BookingSummary date={selectedDate} slot={selectedSlot} paxPackage={selectedPax} />
+
       <Button type="submit" size="lg" className="w-full" disabled={loading}>
         {loading ? (
           <>
             <Spinner size="sm" />
-            Submitting Booking...
+            Submitting…
           </>
         ) : (
           'Submit Booking Request'

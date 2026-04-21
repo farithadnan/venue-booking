@@ -4,7 +4,7 @@ import { ArrowLeft, MapPin, Users } from 'lucide-react'
 import { BookingForm } from '@/components/booking/booking-form'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { VENUE_FALLBACK, TIME_SLOTS_FALLBACK } from '@/lib/constants'
+import { VENUE_FALLBACK, TIME_SLOTS_FALLBACK, PAX_PACKAGES_FALLBACK } from '@/lib/constants'
 import { formatCurrency } from '@/lib/utils'
 
 export function BookEvent({ venueId }: { venueId: string }) {
@@ -49,7 +49,7 @@ export function BookEvent({ venueId }: { venueId: string }) {
             <Card>
               <CardContent className="p-6 sm:p-8">
                 <Suspense fallback={<Skeleton className="h-96" />}>
-                  <BookingForm venueId={venueId} />
+                  <BookingForm venueId={venueId} timeSlots={TIME_SLOTS_FALLBACK} paxPackages={PAX_PACKAGES_FALLBACK} />
                 </Suspense>
               </CardContent>
             </Card>
