@@ -5,11 +5,16 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
-import { TIME_SLOTS_FALLBACK, VENUE_FALLBACK } from '@/lib/constants'
+import type { Venue } from '@/types'
+import { TIME_SLOTS_FALLBACK, PAX_PACKAGES_FALLBACK, VENUE_FALLBACK } from '@/lib/constants'
 import { formatCurrency } from '@/lib/utils'
 
-export default function LandingPage() {
-  const venue = VENUE_FALLBACK
+export default function LandingPage({ venue }: { venue: Venue | null }) {
+  const v = venue ?? VENUE_FALLBACK
+  const timeSlots = venue?.time_slots?.length ? venue.time_slots : TIME_SLOTS_FALLBACK
+  const minPaxPrice = Math.min(
+    ...(venue?.pax_packages?.length ? venue.pax_packages : PAX_PACKAGES_FALLBACK).map((p) => p.price),
+  )
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -29,7 +34,7 @@ export default function LandingPage() {
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-300 leading-relaxed">
               An elegant and spacious venue for weddings, corporate events, gala dinners, and private celebrations.
-              Capacity up to {venue.capacity} guests.
+              Capacity up to {v.capacity} guests.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button asChild size="lg">
@@ -76,12 +81,12 @@ export default function LandingPage() {
                   A Venue That Tells Your Story
                 </h2>
                 <p className="mt-4 text-lg text-slate-600 leading-relaxed">
-                  {venue.description}
+                  {v.description}
                 </p>
                 <div className="mt-6 space-y-3">
                   {[
-                    { icon: MapPin, text: venue.location },
-                    { icon: Users, text: `Capacity: up to ${venue.capacity} guests` },
+                    { icon: MapPin, text: v.location },
+                    { icon: Users, text: `Capacity: up to ${v.capacity} guests` },
                     { icon: Clock, text: 'Available: 8:00 AM – 11:00 PM daily' },
                   ].map(({ icon: Icon, text }) => (
                     <div key={text} className="flex items-center gap-3 text-slate-700">
@@ -120,7 +125,7 @@ export default function LandingPage() {
               <p className="mt-3 text-lg text-slate-500">Everything you need for an unforgettable event</p>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {venue.amenities.map((amenity) => (
+              {v.amenities.map((amenity) => (
                 <div key={amenity} className="flex items-center gap-3 rounded-xl bg-white border border-slate-200 p-4">
                   <CheckCircle className="h-5 w-5 shrink-0 text-amber-600" />
                   <span className="text-slate-700">{amenity}</span>
@@ -138,7 +143,7 @@ export default function LandingPage() {
               <p className="mt-3 text-lg text-slate-500">Choose the session that fits your event</p>
             </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {TIME_SLOTS_FALLBACK.map((slot) => (
+              {timeSlots.map((slot) => (
                 <Card
                   key={slot.label}
                   className={slot.label === 'Full Day' ? 'border-amber-300 shadow-md ring-1 ring-amber-300' : ''}
@@ -156,12 +161,18 @@ export default function LandingPage() {
                       {slot.start_time} – {slot.end_time}
                     </p>
                     <Separator className="my-4" />
-                    <div className="text-3xl font-bold text-slate-900">
-                      {formatCurrency(slot.price)}
+                    <div>
+                      <span className="text-3xl font-bold text-slate-900">
+                        {formatCurrency(slot.price)}
+                      </span>
+                      <span className="ml-1 text-sm text-slate-400">slot only</span>
                     </div>
+                    <p className="mt-1 text-xs text-slate-400">
+                      Guest package from {formatCurrency(minPaxPrice)} added at booking
+                    </p>
                     <div className="mt-4">
                       <Button asChild className="w-full" variant={slot.label === 'Full Day' ? 'default' : 'outline'}>
-                        <Link href={`/booking?slot=${slot.label.toLowerCase().replace(' ', '-')}`}>
+                        <Link href={`/booking?slot=${slot.label.toLowerCase().replace(/\s+/g, '-')}`}>
                           Select
                         </Link>
                       </Button>
