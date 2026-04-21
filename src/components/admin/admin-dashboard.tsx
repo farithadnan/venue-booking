@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useCallback, useMemo } from 'react'
-import { LogOut, CalendarDays, Clock, CheckCircle2, XCircle } from 'lucide-react'
+import Link from 'next/link'
+import { LogOut, CalendarDays, Clock, CheckCircle2, XCircle, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -69,6 +70,12 @@ export function AdminDashboard({ adminEmail }: AdminDashboardProps) {
             </div>
             <div className="flex items-center gap-3">
               <span className="hidden sm:block text-sm text-slate-500">{adminEmail}</span>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/admin/venue">
+                  <Settings className="h-4 w-4" />
+                  <span className="hidden sm:inline ml-1">Venue Settings</span>
+                </Link>
+              </Button>
               <Button variant="ghost" size="sm" onClick={signOut} disabled={loggingOut}>
                 {loggingOut ? <Spinner size="sm" /> : <LogOut className="h-4 w-4" />}
                 <span className="hidden sm:inline">Sign Out</span>
