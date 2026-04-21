@@ -1,4 +1,8 @@
 -- supabase/migrations/006_atomic_booking_v2.sql
+
+-- Drop all overloads so CREATE OR REPLACE has no ambiguity
+DROP FUNCTION IF EXISTS create_booking_atomic CASCADE;
+
 CREATE OR REPLACE FUNCTION create_booking_atomic(
   p_venue_id          UUID,
   p_user_name         TEXT,
