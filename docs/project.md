@@ -1,8 +1,7 @@
 # Venue Booking Web App
 
-**The Grand Hall at Majestic Place** — a full-stack hall booking system where guests submit booking requests and an admin reviews and approves or rejects them.
+A full-stack hall booking system where guests submit booking requests and an admin reviews and approves or rejects them.
 
-- **Deadline:** Sunday, 26 April 2026, 1:00 PM MYT
 - **Stack:** Next.js 16 · TypeScript · Tailwind CSS · Supabase · React Hook Form · Zod v4
 
 ---
@@ -287,6 +286,72 @@ Approve or reject a booking. **Admin only.** Only `pending` bookings can be acti
 | to_status | text | |
 | changed_by | text | admin email |
 | changed_at | timestamptz | |
+
+---
+
+## Setup Guide
+
+### 1. Supabase
+
+1. Go to [supabase.com](https://supabase.com) and create a new project.
+2. Once the project is ready, go to **Project Settings → API** and copy:
+   - **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
+   - **anon public** key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - **service_role secret** key → `SUPABASE_SERVICE_ROLE_KEY`
+3. Go to the **SQL Editor** and run each migration file in order:
+   ```
+   supabase/migrations/001_schema.sql
+   supabase/migrations/002_rls.sql
+   supabase/migrations/003_booking_history.sql
+   supabase/migrations/004_atomic_booking.sql
+   supabase/migrations/005_pricing.sql
+   supabase/migrations/006_atomic_booking_v2.sql
+   ```
+4. Go to **Authentication → Users → Add user** and create the admin account.
+5. After creating the user, open the user record and click **Edit**. Under **Custom Claims / app_metadata**, add:
+   ```json
+   { "role": "admin" }
+   ```
+   Save. This grants admin access to that account.
+6. Add the first venue row directly in the **Table Editor** (`venues` table) or via SQL:
+   ```sql
+   INSERT INTO venues (name, description, capacity, price_per_hour, location, amenities)
+   VALUES (
+     'The Grand Hall at Majestic Place',
+     'An elegant and spacious event hall in the heart of Kuala Lumpur.',
+     1000,
+     500,
+     'Majestic Place, Kuala Lumpur',
+     ARRAY['Air Conditioning','Stage & Podium','Sound System','Parking']
+   );
+   ```
+   Then set pricing via the admin Venue Settings page.
+
+---
+
+### 2. Email (Resend)
+
+Email notifications are optional. When `RESEND_API_KEY` is not set, all emails are silently skipped — the app works fully without them.
+
+To enable:
+
+1. Sign up at [resend.com](https://resend.com). The free tier covers 3,000 emails/month.
+2. Go to **Domains** and add your sending domain (e.g. `yourdomain.com`). Follow the DNS verification steps. Alternatively, use Resend's shared `onresend.dev` domain for testing (no DNS setup needed).
+3. Go to **API Keys** and create a key. Copy it to `RESEND_API_KEY`.
+4. Set `RESEND_FROM_EMAIL` to a verified sender address, e.g.:
+   ```
+   The Grand Hall <noreply@yourdomain.com>
+   ```
+5. Set `ADMIN_NOTIFICATION_EMAIL` to the email address that should receive new booking alerts (e.g. the hall manager's email).
+
+**Emails sent by the app:**
+
+| Trigger | Recipient | Content |
+|---------|-----------|---------|
+| New booking submitted | Guest | Booking confirmation with reference number and details |
+| New booking submitted | Admin (`ADMIN_NOTIFICATION_EMAIL`) | Full booking details with link to dashboard |
+| Admin approves booking | Guest | Approval confirmation |
+| Admin rejects booking | Guest | Rejection notice |
 
 ---
 
