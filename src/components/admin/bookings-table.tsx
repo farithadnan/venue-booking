@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { format } from 'date-fns'
-import { formatTime } from '@/lib/utils'
+import { formatTime, formatCurrency } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { StatusBadge } from './status-badge'
@@ -73,6 +73,7 @@ export function BookingsTable({
               <th className="px-4 py-3">Time</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Reference</th>
+              <th className="px-4 py-3">Total</th>
               <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
@@ -96,6 +97,9 @@ export function BookingsTable({
                 <td className="px-4 py-3 font-mono text-xs text-slate-500">
                   {booking.reference_number}
                 </td>
+                <td className="px-4 py-3 font-semibold text-slate-900">
+                  {booking.total_price != null ? formatCurrency(booking.total_price) : '—'}
+                </td>
                 <td className="px-4 py-3">
                   <BookingActions booking={booking} onUpdated={onBookingUpdated} />
                 </td>
@@ -113,6 +117,7 @@ export function BookingsTable({
               <div>
                 <div className="font-semibold text-slate-900">{booking.user_name}</div>
                 <div className="text-xs text-slate-500">{booking.user_email}</div>
+                <div className="text-xs text-slate-500">{booking.user_phone || '—'}</div>
               </div>
               <StatusBadge status={booking.status} />
             </div>
@@ -122,17 +127,26 @@ export function BookingsTable({
               <span>{formatTime(booking.start_time)} – {formatTime(booking.end_time)}</span>
               <span className="font-mono">{booking.reference_number}</span>
             </div>
-            {booking.notes && (
+            {(booking.notes || booking.total_price != null) && (
               <button
                 type="button"
                 onClick={() => setExpandedId(expandedId === booking.id ? null : booking.id)}
                 className="text-xs text-amber-600 hover:underline"
               >
-                {expandedId === booking.id ? 'Hide notes' : 'Show notes'}
+                {expandedId === booking.id ? 'Hide details' : 'Show details'}
               </button>
             )}
-            {expandedId === booking.id && booking.notes && (
-              <p className="text-xs text-slate-600 bg-slate-50 rounded p-2">{booking.notes}</p>
+            {expandedId === booking.id && (
+              <div className="text-xs text-slate-600 bg-slate-50 rounded p-2 space-y-1">
+                {booking.notes && <p>{booking.notes}</p>}
+                {booking.total_price != null && (
+                  <p className="font-semibold text-slate-800">
+                    Total: {formatCurrency(booking.total_price)}
+                    {booking.pax_package_label && ` · ${booking.pax_package_label} package`}
+                    {booking.guest_count != null && ` · ${booking.guest_count} guests`}
+                  </p>
+                )}
+              </div>
             )}
             <BookingActions booking={booking} onUpdated={onBookingUpdated} />
           </div>
