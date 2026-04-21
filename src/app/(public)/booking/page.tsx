@@ -1,16 +1,17 @@
 import { BookEvent } from '@/components/booking/book-event'
 import { getVenues } from '@/lib/data/venues'
+import type { Venue } from '@/types'
 
-async function getFirstVenueId(): Promise<string> {
+async function getFirstVenue(): Promise<Venue | null> {
   try {
     const venues = await getVenues()
-    return venues[0]?.id ?? ''
+    return venues[0] ?? null
   } catch {
-    return ''
+    return null
   }
 }
 
 export default async function BookingPage() {
-  const venueId = await getFirstVenueId()
-  return <BookEvent venueId={venueId} />
+  const venue = await getFirstVenue()
+  return <BookEvent venue={venue} />
 }

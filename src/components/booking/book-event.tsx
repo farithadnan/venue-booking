@@ -4,11 +4,15 @@ import { ArrowLeft, MapPin, Users } from 'lucide-react'
 import { BookingForm } from '@/components/booking/booking-form'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { VENUE_FALLBACK, TIME_SLOTS_FALLBACK, PAX_PACKAGES_FALLBACK } from '@/lib/constants'
-import { formatCurrency } from '@/lib/utils'
+import { TIME_SLOTS_FALLBACK, PAX_PACKAGES_FALLBACK } from '@/lib/constants'
+import type { Venue } from '@/types'
 
-export function BookEvent({ venueId }: { venueId: string }) {
-  if (!venueId) {
+interface BookEventProps {
+  venue: Venue | null
+}
+
+export function BookEvent({ venue }: BookEventProps) {
+  if (!venue) {
     return (
       <div className="bg-slate-50 min-h-screen flex items-center justify-center py-10">
         <div className="text-center max-w-md px-4">
@@ -28,6 +32,9 @@ export function BookEvent({ venueId }: { venueId: string }) {
       </div>
     )
   }
+
+  const timeSlots = venue.time_slots?.length ? venue.time_slots : TIME_SLOTS_FALLBACK
+  const paxPackages = venue.pax_packages?.length ? venue.pax_packages : PAX_PACKAGES_FALLBACK
 
   return (
     <div className="bg-slate-50 min-h-screen py-10">
@@ -49,7 +56,7 @@ export function BookEvent({ venueId }: { venueId: string }) {
             <Card>
               <CardContent className="p-6 sm:p-8">
                 <Suspense fallback={<Skeleton className="h-96" />}>
-                  <BookingForm venueId={venueId} timeSlots={TIME_SLOTS_FALLBACK} paxPackages={PAX_PACKAGES_FALLBACK} />
+                  <BookingForm venueId={venue.id} timeSlots={timeSlots} paxPackages={paxPackages} />
                 </Suspense>
               </CardContent>
             </Card>
@@ -61,35 +68,14 @@ export function BookEvent({ venueId }: { venueId: string }) {
                 <CardTitle className="text-base">Venue</CardTitle>
               </CardHeader>
               <CardContent className="pt-0 space-y-2">
-                <p className="font-semibold text-slate-900">{VENUE_FALLBACK.name}</p>
+                <p className="font-semibold text-slate-900">{venue.name}</p>
                 <div className="flex items-center gap-2 text-sm text-slate-500">
                   <MapPin className="h-4 w-4 shrink-0" />
-                  {VENUE_FALLBACK.location}
+                  {venue.location}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-500">
                   <Users className="h-4 w-4 shrink-0" />
-                  Up to {VENUE_FALLBACK.capacity} guests
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Time Slots</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-2">
-                  {TIME_SLOTS_FALLBACK.map((slot) => (
-                    <div key={slot.label} className="flex items-center justify-between text-sm">
-                      <div>
-                        <span className="font-medium text-slate-900">{slot.label}</span>
-                        <span className="ml-2 text-slate-400 text-xs">
-                          {slot.start_time}–{slot.end_time}
-                        </span>
-                      </div>
-                      <span className="font-semibold text-slate-900">{formatCurrency(slot.price)}</span>
-                    </div>
-                  ))}
+                  Up to {venue.capacity} guests
                 </div>
               </CardContent>
             </Card>
