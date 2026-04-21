@@ -1,53 +1,27 @@
 # Venue Booking Web App
 
-A responsive hall and venue booking system built with Next.js, TypeScript, Tailwind CSS, and Supabase.
+A responsive hall and venue booking system built with Next.js 16, TypeScript, Tailwind CSS, and Supabase.
 
-## Features
+For full project documentation — architecture, API reference, database schema, environment variables, and design decisions — see [docs/project.md](./docs/project.md).
 
-- Browse venue details, capacity, and amenities
-- Select a date and time slot for your event
-- Submit a booking request with full form validation
-- Receive a booking confirmation with reference number
-- Admin dashboard to manage and update booking statuses (pending / approved / rejected)
-
-## Tech Stack
-
-- **Framework** — Next.js 14 (App Router)
-- **Language** — TypeScript
-- **Styling** — Tailwind CSS
-- **Database & Auth** — Supabase
-- **Forms** — React Hook Form + Zod
-- **Testing** — Jest + React Testing Library
-
-## Getting Started
-
-1. Clone the repo and install dependencies:
+## Quick Start
 
 ```bash
 npm install
+cp .env.example .env.local   # fill in your Supabase credentials
+npm run dev                  # http://localhost:3000
 ```
 
-2. Copy the env template and fill in your Supabase credentials:
+Apply database migrations in the Supabase dashboard SQL Editor (in order):
 
-```bash
-cp .env.example .env.local
 ```
-
-3. Run the development server:
-
-```bash
-npm run dev
+supabase/migrations/001_schema.sql
+supabase/migrations/002_rls.sql
+supabase/migrations/003_booking_history.sql
+supabase/migrations/004_atomic_booking.sql
+supabase/migrations/005_pricing.sql
+supabase/migrations/006_atomic_booking_v2.sql
 ```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Environment Variables
-
-| Variable | Description |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon public key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server only) |
 
 ## Running Tests
 

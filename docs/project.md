@@ -7,43 +7,26 @@
 
 ---
 
-## Requirements
-
-| # | Requirement                               | Backend | Frontend |
-|---|-------------------------------------------|---------|----------|
-| 1 | Responsive landing page                   | —       | ⬜ Todo  |
-| 2 | Venue details page with key information   | ✅ Done | ⬜ Todo  |
-| 3 | Booking request form                      | ✅ Done | ⬜ Todo  |
-| 4 | Date and time slot selection              | ✅ Done | ⬜ Todo  |
-| 5 | Booking confirmation page                 | ✅ Done | ⬜ Todo  |
-| 6 | Admin login page                          | ✅ Done | ⬜ Todo  |
-| 7 | Admin dashboard to manage bookings        | ✅ Done | ⬜ Todo  |
-| 8 | Booking statuses: pending/approved/rejected | ✅ Done | ⬜ Todo |
-| 9 | Proper form validation                    | ✅ Done | ⬜ Todo  |
-| 10| Clean, user-friendly experience           | —       | ⬜ Todo  |
-
----
-
-## How the App Works
+## What the App Does
 
 ### Guest flow (no account required)
-1. Guest visits the landing page and reads venue information.
-2. Guest goes to the venue detail page, picks a date and time slot.
-3. Guest fills in the booking form (name, email, event name, optional notes) and submits.
-4. The API creates a `pending` booking and returns a `reference_number`.
-5. Guest is redirected to the confirmation page showing their reference number.
-6. A confirmation email is sent to the guest's email address (if Resend is configured).
+1. Guest visits the landing page and browses venue information — capacity, amenities, time slot pricing, and guest packages.
+2. Guest clicks **Venue Details** to view the full venue detail page.
+3. Guest clicks **Book Your Event** and fills in the booking form: name, email, phone, event name, date, time slot, guest count (pax package), and optional notes. A live booking summary updates as they fill in the form.
+4. On submission, the API creates a `pending` booking and returns a `reference_number`.
+5. Guest is redirected to the confirmation page showing their reference number and full booking details.
+6. A confirmation email is sent to the guest (requires Resend — see Environment Variables).
+7. The admin is notified by email of the new booking (requires `ADMIN_NOTIFICATION_EMAIL` — see Environment Variables).
 
 ### Admin flow
-1. Admin navigates to `/admin` — the proxy intercepts and redirects to `/login` if not authenticated.
-2. Admin logs in with email and password via `POST /api/v1/auth/login`.
-3. Supabase sets a session cookie. All subsequent admin requests carry this cookie.
-4. Admin views all bookings on the dashboard, filtered by status or searched by name/date.
-5. Admin approves or rejects a `pending` booking.
-6. The booking status changes and an email is sent to the guest.
+1. Admin navigates to `/admin/dashboard` — the proxy intercepts and redirects to `/login` if not authenticated. If already logged in, `/login` redirects straight to the dashboard.
+2. Admin logs in with email and password. Supabase sets a session cookie that persists across page loads.
+3. Admin views all bookings on the dashboard. Each booking shows guest name, email, phone, event name, date, time, guest count, package, total price, and status.
+4. Admin approves or rejects a `pending` booking. The guest receives a status update email.
+5. Admin manages venue pricing (time slots and guest packages) from the **Venue Settings** page, accessible from the dashboard.
 
-> Admin accounts are created manually in the Supabase dashboard.  
-> Set `app_metadata: { "role": "admin" }` on the user record to grant access.  
+> Admin accounts are created manually in the Supabase dashboard.
+> Set `app_metadata: { "role": "admin" }` on the user record to grant access.
 > Only `pending` bookings can be actioned — approved/rejected bookings are final.
 
 ---
@@ -55,57 +38,73 @@
 ```
 src/
   app/
-    api/v1/               ← all API routes (versioned)
+    api/v1/                   ← all API routes (versioned)
       auth/
-        login/route.ts    POST /api/v1/auth/login
-        logout/route.ts   POST /api/v1/auth/logout
+        login/route.ts        POST /api/v1/auth/login
+        logout/route.ts       POST /api/v1/auth/logout
       bookings/
-        route.ts          GET (admin list) · POST (create)
-        lookup/route.ts   GET /api/v1/bookings/lookup?reference=
-        [id]/route.ts     GET (by UUID) · PATCH (update status)
+        route.ts              GET (admin list) · POST (create)
+        lookup/route.ts       GET /api/v1/bookings/lookup?reference=
+        [id]/route.ts         GET (by UUID) · PATCH (update status)
       venues/
-        route.ts          GET (list)
-        [id]/route.ts     GET (by UUID)
-    (admin)/              ← admin pages (protected by proxy)
-    (public)/             ← guest-facing pages
+        route.ts              GET (list)
+        [id]/route.ts         GET (by UUID) · PATCH (update settings)
+    (admin)/                  ← admin pages (protected by proxy)
+      login/                  /login
+      admin/dashboard/        /admin/dashboard
+      admin/venue/            /admin/venue (venue settings)
+    (public)/                 ← guest-facing pages
+      page.tsx                / (landing page)
+      venue/[id]/             /venue/:id (venue detail)
+      booking/                /booking (booking form)
+      booking/confirmation/   /booking/confirmation (post-submit)
   lib/
-    auth.ts               requireAdmin() helper
-    email.ts              Resend email service
-    env.ts                Zod env validation (throws at startup if vars missing)
-    logger.ts             Structured JSON logger with requestId
-    rate-limit.ts         In-memory rate limiter (IP-based)
-    utils.ts              Shared constants (UUID_REGEX)
-    validations.ts        All Zod schemas — single source of truth
+    auth.ts                   requireAdmin() helper
+    email.ts                  Resend email service (confirmation + admin notification)
+    env.ts                    Zod env validation — throws at startup if vars missing
+    logger.ts                 Structured JSON logger with requestId
+    rate-limit.ts             In-memory rate limiter (IP-based)
+    utils.ts                  formatCurrency, formatDate, deriveBookingPrice
+    validations.ts            All Zod schemas — single source of truth
+    constants.ts              Fallback time slots and pax packages
     supabase/
-      server.ts           SSR-safe anon client (uses next/headers cookies)
-      admin.ts            Service-role client (bypasses RLS, no cookies)
-      client.ts           Browser client
-  types/index.ts          Shared TypeScript types
-  proxy.ts                Protects /admin/** routes (Next.js 16: was middleware.ts)
+      server.ts               SSR-safe anon client (uses next/headers cookies)
+      admin.ts                Service-role client (bypasses RLS)
+      client.ts               Browser client
+  types/index.ts              Shared TypeScript types
+  proxy.ts                    Protects /admin/** routes (Next.js 16: renamed from middleware.ts)
 supabase/
   migrations/
-    001_schema.sql        venues + bookings tables, indexes
-    002_rls.sql           Row Level Security policies
-    003_booking_history.sql  Audit trail table
-    004_atomic_booking.sql   PG function: create_booking_atomic()
+    001_schema.sql            venues + bookings tables, indexes
+    002_rls.sql               Row Level Security policies
+    003_booking_history.sql   Audit trail table
+    004_atomic_booking.sql    Original create_booking_atomic() function
+    005_pricing.sql           time_slots + pax_packages on venues; pricing columns on bookings
+    006_atomic_booking_v2.sql Updated RPC with pricing params, SECURITY DEFINER, GRANT EXECUTE
 ```
 
 ### Two Supabase clients — why
 
 | Client | Key used | Bypasses RLS | When to use |
 |--------|----------|--------------|-------------|
-| `createClient()` in `lib/supabase/server.ts` | Anon key | No | Auth checks, public reads (venues), booking insert |
-| `createAdminClient()` in `lib/supabase/admin.ts` | Service role key | Yes | All admin operations, booking reads (RLS restricts SELECT to service_role) |
+| `createClient()` — `lib/supabase/server.ts` | Anon key | No | Auth checks, public reads (venues), booking insert via RPC |
+| `createAdminClient()` — `lib/supabase/admin.ts` | Service role key | Yes | All admin operations, post-insert booking fetch |
 
 The anon key is public (`NEXT_PUBLIC_`). RLS on `bookings` restricts SELECT to the service role so someone with the anon key cannot enumerate booking records directly via the Supabase REST endpoint.
 
 ### Race condition prevention
 
-A guest booking goes through a Postgres function (`create_booking_atomic`) instead of a two-step check-then-insert in application code. The function locks approved rows for the venue+date with `FOR UPDATE`, checks for overlaps, then inserts — all inside one transaction. Two concurrent requests for the same slot will queue at the lock; the second one gets `BOOKING_CONFLICT` and returns 409.
+A guest booking goes through a Postgres function (`create_booking_atomic`) instead of a two-step check-then-insert in application code. The function locks approved rows for the venue+date with `FOR UPDATE`, checks for overlaps, then inserts — all inside one transaction. Two concurrent requests for the same slot will queue at the lock; the second gets `BOOKING_CONFLICT` and the API returns 409.
+
+The function is defined with `SECURITY DEFINER` so it runs with DB owner privileges regardless of whether the caller is `anon` or `authenticated`.
 
 ### Audit trail
 
 Every status change (pending → approved/rejected) writes a row to `booking_status_history` with the before/after status and the admin's email. This table is service-role only and is never exposed via the API.
+
+### Session persistence
+
+`proxy.ts` runs on every request matching `/admin/**`. It calls `supabase.auth.getUser()` on each request — this triggers a token refresh if the access token has expired but the refresh token is still valid, and writes the new tokens back to the response cookies. Without this, sessions would expire after ~1 hour.
 
 ---
 
@@ -122,10 +121,10 @@ Admin login. Sets a session cookie on success.
 ```json
 { "email": "admin@example.com", "password": "..." }
 ```
-**200** `{ "user": { "id": "...", "email": "..." } }`  
-**401** Invalid credentials (same message for wrong email and wrong password — no enumeration)  
-**403** Valid credentials but account is not an admin  
-**429** Rate limit exceeded (10 attempts / 15 min per IP)
+**200** `{ "user": { "id": "...", "email": "..." } }`
+**401** Invalid credentials
+**403** Valid credentials but not an admin
+**429** Rate limited (10 attempts / 15 min per IP)
 
 ---
 
@@ -148,8 +147,23 @@ List all venues. Public.
 #### `GET /api/v1/venues/:id`
 Get a single venue. Public.
 
-**200** `Venue`  
+**200** `Venue`
 **404** Not found
+
+---
+
+#### `PATCH /api/v1/venues/:id`
+Update venue time slots and guest packages. **Admin only.**
+
+**Body**
+```json
+{
+  "time_slots": [{ "label": "Morning", "start_time": "08:00", "end_time": "12:00", "price": 2000 }],
+  "pax_packages": [{ "label": "Small", "min_pax": 50, "max_pax": 200, "price": 1000 }]
+}
+```
+**200** Updated `Venue`
+**401 / 403** Auth
 
 ---
 
@@ -164,27 +178,29 @@ Submit a booking request. Public. Rate-limited: 10 requests / 15 min per IP.
   "venue_id": "uuid",
   "user_name": "string (2–100 chars)",
   "user_email": "email",
+  "user_phone": "+601X-XXXXXXXX (Malaysian format)",
   "event_name": "string (2–200 chars)",
   "date": "YYYY-MM-DD (today or future)",
-  "start_time": "HH:MM (00:00–23:59)",
+  "start_time": "HH:MM",
   "end_time": "HH:MM (must be after start_time)",
+  "guest_count": "integer ≥ 1",
+  "pax_package_label": "string matching a venue pax package label",
   "notes": "string (optional, max 1000 chars)"
 }
 ```
-**201** `Booking` (includes `reference_number`)  
-**404** Venue not found  
-**409** Time slot already booked  
-**422** Validation errors  
-**429** Rate limit exceeded
+**201** `Booking` (includes `reference_number` and derived pricing)
+**404** Venue not found
+**409** Time slot already booked
+**422** Validation errors or selected slot/package no longer available
+**429** Rate limited
 
 ---
 
 #### `GET /api/v1/bookings/lookup?reference=VB-xxx`
-Look up a booking by reference number. Public. Rate-limited: 20 requests / 15 min per IP.  
-Used on the confirmation page when the guest only has their reference number.
+Look up a booking by reference number. Public. Rate-limited: 20 requests / 15 min per IP.
 
-**200** `Booking`  
-**400** Missing `reference` param  
+**200** `Booking`
+**400** Missing `reference` param
 **404** Not found
 
 ---
@@ -192,7 +208,7 @@ Used on the confirmation page when the guest only has their reference number.
 #### `GET /api/v1/bookings/:id`
 Get a single booking by UUID. Public (UUID is the access secret).
 
-**200** `Booking` with nested `venue { id, name, location }`  
+**200** `Booking` with nested `venue { id, name, location }`
 **404** Not found
 
 ---
@@ -206,15 +222,8 @@ List all bookings. **Admin only.**
 | `page` | 1 | 1-indexed |
 | `limit` | 20 | Max 100 |
 
-**200**
-```json
-{
-  "data": "Booking[]",
-  "pagination": { "page": 1, "limit": 20, "total": 150, "totalPages": 8 }
-}
-```
-**401** Not authenticated  
-**403** Not an admin
+**200** `{ "data": Booking[], "pagination": { "page", "limit", "total", "totalPages" } }`
+**401 / 403** Auth
 
 ---
 
@@ -223,9 +232,9 @@ Approve or reject a booking. **Admin only.** Only `pending` bookings can be acti
 
 **Body** `{ "status": "approved" | "rejected" }`
 
-**200** Updated `Booking`  
-**401 / 403** Auth  
-**404** Not found  
+**200** Updated `Booking`
+**401 / 403** Auth
+**404** Not found
 **422** Booking is not pending, or invalid status value
 
 ---
@@ -241,8 +250,10 @@ Approve or reject a booking. **Admin only.** Only `pending` bookings can be acti
 | capacity | integer | > 0 |
 | price_per_hour | numeric(10,2) | ≥ 0 |
 | amenities | text[] | |
-| images | text[] | |
+| images | text[] | Index 0 used as homepage banner image |
 | location | text | |
+| time_slots | jsonb | Array of `{ label, start_time, end_time, price }` |
+| pax_packages | jsonb | Array of `{ label, min_pax, max_pax, price }` |
 | created_at | timestamptz | |
 
 ### `bookings`
@@ -252,13 +263,19 @@ Approve or reject a booking. **Admin only.** Only `pending` bookings can be acti
 | venue_id | uuid FK → venues | ON DELETE RESTRICT |
 | user_name | text | |
 | user_email | text | |
+| user_phone | text | Malaysian format |
 | event_name | text | |
 | date | date | |
 | start_time | time | |
 | end_time | time | CHECK end > start |
-| status | text | pending / approved / rejected |
-| reference_number | text UNIQUE | Format: `VB-{timestamp}-{4chars}` |
+| status | text | `pending` / `approved` / `rejected` |
+| reference_number | text UNIQUE | Format: `VB-{timestamp36}-{4chars}` |
 | notes | text | nullable |
+| guest_count | integer | nullable |
+| pax_package_label | text | nullable — label of selected pax package |
+| slot_price | numeric(10,2) | nullable — price snapshot at booking time |
+| pax_price | numeric(10,2) | nullable — price snapshot at booking time |
+| total_price | numeric(10,2) | nullable — slot_price + pax_price |
 | created_at | timestamptz | |
 
 ### `booking_status_history`
@@ -277,44 +294,34 @@ Approve or reject a booking. **Admin only.** Only `pending` bookings can be acti
 
 ```bash
 # Required
-NEXT_PUBLIC_SUPABASE_URL=        # Supabase project URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=   # Public anon key
-SUPABASE_SERVICE_ROLE_KEY=       # Secret — server only, never expose to client
+NEXT_PUBLIC_SUPABASE_URL=         # Supabase project URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=    # Public anon key
+SUPABASE_SERVICE_ROLE_KEY=        # Secret — server only, never expose to client
 
-# Optional (email notifications via Resend)
-RESEND_API_KEY=                  # Leave blank to skip emails in development
-RESEND_FROM_EMAIL=               # e.g. Venue Booking <noreply@yourdomain.com>
-APP_URL=                         # e.g. https://yourdomain.com (used in email links)
-```
+# Email notifications via Resend (https://resend.com)
+# Leave blank to disable emails during development
+RESEND_API_KEY=                   # Resend API key
+RESEND_FROM_EMAIL=                # e.g. The Grand Hall <noreply@yourdomain.com>
+ADMIN_NOTIFICATION_EMAIL=         # Email address to notify on new booking submissions
 
----
-
-## Local Development
-
-```bash
-npm install
-cp .env.example .env.local   # fill in your Supabase credentials
-npm run dev                  # http://localhost:3000
-```
-
-Apply migrations in the Supabase dashboard SQL editor, or via the Supabase CLI:
-
-```bash
-supabase db push
+# App
+APP_URL=                          # e.g. https://yourdomain.com (used in email links)
 ```
 
 ---
 
 ## Key Design Decisions
 
-**No user accounts for guests** — guests book by submitting a form. The `reference_number` returned on creation is their only identifier. No signup friction, no forgotten passwords.
+**No user accounts for guests** — guests book by submitting a form. The `reference_number` is their only identifier. No signup friction, no forgotten passwords.
 
-**`proxy.ts` not `middleware.ts`** — Next.js 16 deprecated `middleware.ts` and renamed it `proxy.ts` with a named `proxy` export. The proxy only handles page-level redirects; every API route does its own auth check independently (defense in depth).
+**Server-side price derivation** — the client never sends prices. On submission, the server re-fetches the venue's `time_slots` and `pax_packages`, matches the submitted slot and package labels, and derives the price. This prevents price tampering from the client.
 
-**Service role for all booking reads** — `bookings` SELECT is restricted to service_role in RLS. Because the anon key is public (`NEXT_PUBLIC_`), without this restriction anyone could query all bookings directly through the Supabase REST endpoint. The API layer is the only legitimate entry point.
+**`proxy.ts` not `middleware.ts`** — Next.js 16 deprecated `middleware.ts` and renamed it `proxy.ts` with a named `proxy` export. The proxy handles page-level session refresh and admin route protection; every API route independently validates auth (defense in depth).
 
-**Atomic booking via Postgres function** — application-level check-then-insert has a race condition window. `create_booking_atomic()` uses `SELECT ... FOR UPDATE` to serialize concurrent inserts for the same venue+date, making double-bookings impossible at the DB level.
+**Service role for all booking reads** — `bookings` SELECT is restricted to service_role in RLS. Because the anon key is public, without this anyone could query all bookings directly via the Supabase REST endpoint.
 
-**Emails are fire-and-forget** — email delivery failures do not fail the booking request. The confirmation is logged server-side if sending fails. Emails are optional (disabled when `RESEND_API_KEY` is not set) so local development works without configuration.
+**Atomic booking via Postgres function** — `create_booking_atomic()` uses `SELECT ... FOR UPDATE` to serialize concurrent inserts for the same venue+date. Double-bookings are impossible at the DB level. Defined with `SECURITY DEFINER` so RLS does not block the insert regardless of the caller's role.
 
-**Rate limiting is in-memory** — the current `Map`-based implementation works for single-instance deployments. For multi-instance production (e.g. serverless), swap `src/lib/rate-limit.ts` for a Redis-backed implementation — the interface (`checkRateLimit`, `rateLimitHeaders`) does not change.
+**Emails are fire-and-forget** — email delivery failures do not fail the booking request. The error is logged server-side. Emails are fully optional and disabled when `RESEND_API_KEY` is not set.
+
+**Rate limiting is in-memory** — the current `Map`-based implementation works for single-instance deployments. For multi-instance production (e.g. serverless/edge), swap `src/lib/rate-limit.ts` for a Redis-backed implementation — the interface (`checkRateLimit`, `rateLimitHeaders`) does not change.
