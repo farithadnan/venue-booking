@@ -46,13 +46,13 @@ export const updateVenueSettingsSchema = z.object({
     start_time: z.string().regex(TIME_REGEX),
     end_time: z.string().regex(TIME_REGEX),
     price: z.number().min(0),
-  })).min(1, 'At least one time slot required'),
+  }).refine(s => s.start_time < s.end_time, { message: 'end_time must be after start_time', path: ['end_time'] })).min(1, 'At least one time slot required'),
   pax_packages: z.array(z.object({
     label: z.string().min(1),
     min_pax: z.number().int().min(1),
     max_pax: z.number().int().min(1),
     price: z.number().min(0),
-  })).min(1, 'At least one guest package required'),
+  }).refine(p => p.min_pax <= p.max_pax, { message: 'max_pax must be >= min_pax', path: ['max_pax'] })).min(1, 'At least one guest package required'),
 })
 
 export type UpdateVenueSettingsInput = z.infer<typeof updateVenueSettingsSchema>
