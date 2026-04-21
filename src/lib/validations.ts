@@ -40,13 +40,11 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 })
 
-const TIME_REGEX_LOCAL = /^([01]\d|2[0-3]):[0-5]\d$/
-
 export const updateVenueSettingsSchema = z.object({
   time_slots: z.array(z.object({
     label: z.string().min(1),
-    start_time: z.string().regex(TIME_REGEX_LOCAL),
-    end_time: z.string().regex(TIME_REGEX_LOCAL),
+    start_time: z.string().regex(TIME_REGEX),
+    end_time: z.string().regex(TIME_REGEX),
     price: z.number().min(0),
   })).min(1, 'At least one time slot required'),
   pax_packages: z.array(z.object({

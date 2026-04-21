@@ -48,6 +48,7 @@ export function deriveBookingPrice(
   )
   const pkg = paxPackages.find((p) => p.label === paxPackageLabel)
   if (!slot || !pkg) return null
+  if (!Number.isFinite(slot.price) || !Number.isFinite(pkg.price)) return null
   return {
     slotPrice: slot.price,
     paxPrice: pkg.price,

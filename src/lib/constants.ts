@@ -36,6 +36,8 @@ export const VENUE_FALLBACK = {
   images: [],
   location: 'Majestic Place, Kuala Lumpur',
   created_at: '',
+  time_slots: [],
+  pax_packages: [],
 }
 
 export const STATUS_LABELS: Record<string, string> = {
