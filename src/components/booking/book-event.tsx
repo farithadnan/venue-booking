@@ -4,7 +4,7 @@ import { ArrowLeft, MapPin, Users } from 'lucide-react'
 import { BookingForm } from '@/components/booking/booking-form'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { VENUE_FALLBACK, TIME_SLOTS } from '@/lib/constants'
+import { VENUE_FALLBACK, TIME_SLOTS_FALLBACK } from '@/lib/constants'
 import { formatCurrency } from '@/lib/utils'
 
 export function BookEvent({ venueId }: { venueId: string }) {
@@ -79,7 +79,7 @@ export function BookEvent({ venueId }: { venueId: string }) {
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-2">
-                  {TIME_SLOTS.map((slot) => (
+                  {TIME_SLOTS_FALLBACK.map((slot) => (
                     <div key={slot.label} className="flex items-center justify-between text-sm">
                       <div>
                         <span className="font-medium text-slate-900">{slot.label}</span>

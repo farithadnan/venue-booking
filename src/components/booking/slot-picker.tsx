@@ -1,7 +1,8 @@
 'use client'
 
 import { cn, formatCurrency } from '@/lib/utils'
-import { TIME_SLOTS, type TimeSlot } from '@/lib/constants'
+import { TIME_SLOTS_FALLBACK } from '@/lib/constants'
+import type { TimeSlot } from '@/types'
 
 interface SlotPickerProps {
   value: TimeSlot | null
@@ -13,7 +14,7 @@ export function SlotPicker({ value, onChange, error }: SlotPickerProps) {
   return (
     <div className="space-y-2">
       <div className="grid grid-cols-2 gap-3">
-        {TIME_SLOTS.map((slot) => {
+        {TIME_SLOTS_FALLBACK.map((slot) => {
           const selected = value?.label === slot.label
           return (
             <button

@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
-import { TIME_SLOTS, VENUE_FALLBACK } from '@/lib/constants'
+import { TIME_SLOTS_FALLBACK, VENUE_FALLBACK } from '@/lib/constants'
 import { formatCurrency } from '@/lib/utils'
 
 export default function LandingPage() {
@@ -138,7 +138,7 @@ export default function LandingPage() {
               <p className="mt-3 text-lg text-slate-500">Choose the session that fits your event</p>
             </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {TIME_SLOTS.map((slot) => (
+              {TIME_SLOTS_FALLBACK.map((slot) => (
                 <Card
                   key={slot.label}
                   className={slot.label === 'Full Day' ? 'border-amber-300 shadow-md ring-1 ring-amber-300' : ''}
@@ -155,7 +155,6 @@ export default function LandingPage() {
                     <p className="mt-1 text-sm text-slate-500">
                       {slot.start_time} – {slot.end_time}
                     </p>
-                    <p className="text-xs text-slate-400 mt-0.5">{slot.duration}</p>
                     <Separator className="my-4" />
                     <div className="text-3xl font-bold text-slate-900">
                       {formatCurrency(slot.price)}

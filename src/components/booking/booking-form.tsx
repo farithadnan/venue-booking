@@ -6,7 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createBookingSchema, type CreateBookingInput } from '@/lib/validations'
-import { TIME_SLOTS, type TimeSlot } from '@/lib/constants'
+import { TIME_SLOTS_FALLBACK } from '@/lib/constants'
+import type { TimeSlot } from '@/types'
 import { useCreateBooking } from '@/hooks/useCreateBooking'
 import { toast } from '@/hooks/useToast'
 import { Button } from '@/components/ui/button'
@@ -42,7 +43,7 @@ export function BookingForm({ venueId }: BookingFormProps) {
   useEffect(() => {
     const slotParam = searchParams.get('slot')
     if (slotParam) {
-      const match = TIME_SLOTS.find(
+      const match = TIME_SLOTS_FALLBACK.find(
         (s) => s.label.toLowerCase().replace(' ', '-') === slotParam
       )
       if (match) {

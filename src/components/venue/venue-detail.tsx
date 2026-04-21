@@ -3,7 +3,7 @@ import { ArrowLeft, MapPin, Users, CheckCircle, CalendarDays } from 'lucide-reac
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { TIME_SLOTS } from '@/lib/constants'
+import { TIME_SLOTS_FALLBACK } from '@/lib/constants'
 import { formatCurrency } from '@/lib/utils'
 import type { Venue } from '@/types'
 
@@ -61,7 +61,7 @@ export function VenueDetail({ venue }: { venue: Venue }) {
               <CardContent className="p-6">
                 <h2 className="text-xl font-bold text-slate-900 mb-4">Pricing</h2>
                 <div className="space-y-3">
-                  {TIME_SLOTS.map((slot, i) => (
+                  {TIME_SLOTS_FALLBACK.map((slot, i) => (
                     <div key={slot.label}>
                       <div className="flex items-center justify-between py-2">
                         <div>
@@ -69,11 +69,10 @@ export function VenueDetail({ venue }: { venue: Venue }) {
                           <span className="ml-3 text-sm text-slate-500">
                             {slot.start_time} – {slot.end_time}
                           </span>
-                          <span className="ml-2 text-xs text-slate-400">({slot.duration})</span>
                         </div>
                         <span className="font-bold text-slate-900">{formatCurrency(slot.price)}</span>
                       </div>
-                      {i < TIME_SLOTS.length - 1 && <Separator />}
+                      {i < TIME_SLOTS_FALLBACK.length - 1 && <Separator />}
                     </div>
                   ))}
                 </div>
@@ -91,7 +90,7 @@ export function VenueDetail({ venue }: { venue: Venue }) {
                     requests within 24 hours.
                   </p>
                   <div className="space-y-2">
-                    {TIME_SLOTS.map((slot) => (
+                    {TIME_SLOTS_FALLBACK.map((slot) => (
                       <Button
                         key={slot.label}
                         asChild

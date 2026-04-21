@@ -27,3 +27,30 @@ export function formatTime(time: string): string {
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-MY', { style: 'currency', currency: 'MYR' }).format(amount)
 }
+
+import type { TimeSlot, PaxPackage } from '@/types'
+
+export interface DerivedPrice {
+  slotPrice: number
+  paxPrice: number
+  totalPrice: number
+}
+
+export function deriveBookingPrice(
+  startTime: string,
+  endTime: string,
+  paxPackageLabel: string,
+  timeSlots: TimeSlot[],
+  paxPackages: PaxPackage[]
+): DerivedPrice | null {
+  const slot = timeSlots.find(
+    (s) => s.start_time === startTime && s.end_time === endTime
+  )
+  const pkg = paxPackages.find((p) => p.label === paxPackageLabel)
+  if (!slot || !pkg) return null
+  return {
+    slotPrice: slot.price,
+    paxPrice: pkg.price,
+    totalPrice: slot.price + pkg.price,
+  }
+}
