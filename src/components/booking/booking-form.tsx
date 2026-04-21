@@ -201,7 +201,7 @@ export function BookingForm({ venueId, timeSlots, paxPackages }: BookingFormProp
             Guest Count *{' '}
             <span className="text-xs font-normal text-slate-400">— affects total price</span>
           </Label>
-          <input type="hidden" {...register('guest_count', { valueAsNumber: true })} />
+          <input type="hidden" {...register('guest_count')} />
           <input type="hidden" {...register('pax_package_label')} />
           <PaxPicker
             packages={paxPackages}
