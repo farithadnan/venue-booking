@@ -4,6 +4,12 @@ A responsive hall and venue booking system built with Next.js 16, TypeScript, Ta
 
 For full project documentation — architecture, API reference, database schema, environment variables, and design decisions — see [docs/project.md](./docs/project.md).
 
+## Live Demo
+
+[https://venue-booking-eight.vercel.app](https://venue-booking-eight.vercel.app)
+
+**Admin access:** `admin@test.com` / `admin123`
+
 ## Quick Start
 
 ```bash

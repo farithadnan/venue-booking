@@ -313,23 +313,48 @@ Approve or reject a booking. **Admin only.** Only `pending` bookings can be acti
    { "role": "admin" }
    ```
    Save. This grants admin access to that account.
-6. Add the first venue row directly in the **Table Editor** (`venues` table) or via SQL:
+6. Add the first venue row via the **SQL Editor**:
    ```sql
-   INSERT INTO venues (name, description, capacity, price_per_hour, location, amenities)
+   INSERT INTO venues (name, description, capacity, price_per_hour, location, amenities, images)
    VALUES (
      'The Grand Hall at Majestic Place',
      'An elegant and spacious event hall in the heart of Kuala Lumpur.',
      1000,
      500,
      'Majestic Place, Kuala Lumpur',
-     ARRAY['Air Conditioning','Stage & Podium','Sound System','Parking']
+     ARRAY['Air Conditioning','Stage & Podium','Sound System','Parking'],
+     ARRAY['https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1600']
    );
    ```
-   Then set pricing via the admin Venue Settings page.
+   Replace the Unsplash URL with any public image URL you want shown on the homepage.
+7. Log in to the admin panel (`/login`) and go to **Venue Settings** to set time slots and guest packages. Pricing will not appear on the homepage until this is done.
 
 ---
 
-### 2. Email (Resend)
+### 2. Vercel Deployment
+
+1. Push your code to a GitHub repository.
+2. Go to [vercel.com](https://vercel.com) → **Add New Project** → import your GitHub repo.
+3. Vercel auto-detects Next.js — no build settings need changing.
+4. Before clicking **Deploy**, open **Environment Variables** and add:
+
+   | Variable | Value |
+   |----------|-------|
+   | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
+   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your anon public key |
+   | `SUPABASE_SERVICE_ROLE_KEY` | Your service role secret key |
+   | `APP_URL` | Your Vercel URL, e.g. `https://your-app.vercel.app` |
+   | `RESEND_API_KEY` | *(optional)* Leave blank to disable emails |
+   | `RESEND_FROM_EMAIL` | *(optional)* e.g. `The Grand Hall <noreply@yourdomain.com>` |
+   | `ADMIN_NOTIFICATION_EMAIL` | *(optional)* Email to notify on new bookings |
+
+5. Click **Deploy**. Once complete, update `APP_URL` in the Vercel environment variables to match the final deployment URL, then redeploy.
+
+> `APP_URL` is used to generate links inside notification emails. If emails are disabled, this can be left blank.
+
+---
+
+### 3. Email (Resend)
 
 Email notifications are optional. When `RESEND_API_KEY` is not set, all emails are silently skipped — the app works fully without them.
 
