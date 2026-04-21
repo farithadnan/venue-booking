@@ -1,20 +1,20 @@
 'use client'
 
 import { cn, formatCurrency } from '@/lib/utils'
-import { TIME_SLOTS_FALLBACK } from '@/lib/constants'
 import type { TimeSlot } from '@/types'
 
 interface SlotPickerProps {
+  slots: TimeSlot[]
   value: TimeSlot | null
   onChange: (slot: TimeSlot) => void
   error?: string
 }
 
-export function SlotPicker({ value, onChange, error }: SlotPickerProps) {
+export function SlotPicker({ slots, value, onChange, error }: SlotPickerProps) {
   return (
     <div className="space-y-2">
       <div className="grid grid-cols-2 gap-3">
-        {TIME_SLOTS_FALLBACK.map((slot) => {
+        {slots.map((slot) => {
           const selected = value?.label === slot.label
           return (
             <button
@@ -33,7 +33,7 @@ export function SlotPicker({ value, onChange, error }: SlotPickerProps) {
                 {slot.start_time} – {slot.end_time}
               </span>
               <span className={cn('mt-1 text-sm font-bold', selected ? 'text-amber-700' : 'text-slate-900')}>
-                {formatCurrency(slot.price)}
+                + {formatCurrency(slot.price)}
               </span>
             </button>
           )

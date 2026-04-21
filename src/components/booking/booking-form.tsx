@@ -144,6 +144,7 @@ export function BookingForm({ venueId }: BookingFormProps) {
           <input type="hidden" {...register('start_time')} />
           <input type="hidden" {...register('end_time')} />
           <SlotPicker
+            slots={TIME_SLOTS_FALLBACK}
             value={selectedSlot}
             onChange={handleSlotChange}
             error={errors.start_time?.message}
