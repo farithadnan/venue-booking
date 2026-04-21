@@ -1,1 +1,1 @@
-export { GET } from './venue-detail'
+export { GET, PATCH } from './venue-detail'
