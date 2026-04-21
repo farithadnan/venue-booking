@@ -69,10 +69,10 @@ export function BookingsTable({
             <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
               <th className="px-4 py-3">Guest</th>
               <th className="px-4 py-3">Event</th>
+              <th className="px-4 py-3">Pax</th>
               <th className="px-4 py-3">Date</th>
               <th className="px-4 py-3">Time</th>
               <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Reference</th>
               <th className="px-4 py-3">Total</th>
               <th className="px-4 py-3">Actions</th>
             </tr>
@@ -83,8 +83,15 @@ export function BookingsTable({
                 <td className="px-4 py-3">
                   <div className="font-medium text-slate-900">{booking.user_name}</div>
                   <div className="text-xs text-slate-500">{booking.user_email}</div>
+                  {booking.user_phone && <div className="text-xs text-slate-400">{booking.user_phone}</div>}
                 </td>
                 <td className="px-4 py-3 text-slate-700">{booking.event_name}</td>
+                <td className="px-4 py-3">
+                  {booking.guest_count != null
+                    ? <><div className="font-medium text-slate-900">{booking.guest_count} pax</div>
+                        {booking.pax_package_label && <div className="text-xs text-slate-400">{booking.pax_package_label}</div>}</>
+                    : <span className="text-slate-300">—</span>}
+                </td>
                 <td className="px-4 py-3 text-slate-700">
                   {format(new Date(booking.date + 'T00:00:00'), 'dd MMM yyyy')}
                 </td>
@@ -93,9 +100,7 @@ export function BookingsTable({
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={booking.status} />
-                </td>
-                <td className="px-4 py-3 font-mono text-xs text-slate-500">
-                  {booking.reference_number}
+                  <div className="font-mono text-xs text-slate-400 mt-1">{booking.reference_number}</div>
                 </td>
                 <td className="px-4 py-3 font-semibold text-slate-900">
                   {booking.total_price != null ? formatCurrency(booking.total_price) : '—'}
@@ -117,7 +122,7 @@ export function BookingsTable({
               <div>
                 <div className="font-semibold text-slate-900">{booking.user_name}</div>
                 <div className="text-xs text-slate-500">{booking.user_email}</div>
-                <div className="text-xs text-slate-500">{booking.user_phone || '—'}</div>
+                {booking.user_phone && <div className="text-xs text-slate-400">{booking.user_phone}</div>}
               </div>
               <StatusBadge status={booking.status} />
             </div>
@@ -125,28 +130,31 @@ export function BookingsTable({
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
               <span>{format(new Date(booking.date + 'T00:00:00'), 'dd MMM yyyy')}</span>
               <span>{formatTime(booking.start_time)} – {formatTime(booking.end_time)}</span>
-              <span className="font-mono">{booking.reference_number}</span>
+              {booking.guest_count != null && (
+                <span className="font-medium text-slate-700">
+                  {booking.guest_count} pax{booking.pax_package_label ? ` · ${booking.pax_package_label}` : ''}
+                </span>
+              )}
+              {booking.total_price != null && (
+                <span className="font-semibold text-slate-800">{formatCurrency(booking.total_price)}</span>
+              )}
             </div>
-            {(booking.notes || booking.total_price != null) && (
-              <button
-                type="button"
-                onClick={() => setExpandedId(expandedId === booking.id ? null : booking.id)}
-                className="text-xs text-amber-600 hover:underline"
-              >
-                {expandedId === booking.id ? 'Hide details' : 'Show details'}
-              </button>
-            )}
-            {expandedId === booking.id && (
-              <div className="text-xs text-slate-600 bg-slate-50 rounded p-2 space-y-1">
-                {booking.notes && <p>{booking.notes}</p>}
-                {booking.total_price != null && (
-                  <p className="font-semibold text-slate-800">
-                    Total: {formatCurrency(booking.total_price)}
-                    {booking.pax_package_label && ` · ${booking.pax_package_label} package`}
-                    {booking.guest_count != null && ` · ${booking.guest_count} guests`}
-                  </p>
+            <div className="font-mono text-xs text-slate-400">{booking.reference_number}</div>
+            {booking.notes && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(expandedId === booking.id ? null : booking.id)}
+                  className="text-xs text-amber-600 hover:underline"
+                >
+                  {expandedId === booking.id ? 'Hide notes' : 'Show notes'}
+                </button>
+                {expandedId === booking.id && (
+                  <div className="text-xs text-slate-600 bg-slate-50 rounded p-2">
+                    {booking.notes}
+                  </div>
                 )}
-              </div>
+              </>
             )}
             <BookingActions booking={booking} onUpdated={onBookingUpdated} />
           </div>

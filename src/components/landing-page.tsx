@@ -43,12 +43,21 @@ export default function LandingPage({ venue }: { venue: Venue | null }) {
                   Book Your Event
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="border-slate-600 bg-transparent text-white hover:bg-slate-800 hover:text-white">
-                <Link href="#about">
-                  Learn More
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
+              {venue?.id ? (
+                <Button asChild variant="outline" size="lg" className="border-slate-600 bg-transparent text-white hover:bg-slate-800 hover:text-white">
+                  <Link href={`/venue/${venue.id}`}>
+                    Venue Details
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              ) : (
+                <Button asChild variant="outline" size="lg" className="border-slate-600 bg-transparent text-white hover:bg-slate-800 hover:text-white">
+                  <Link href="#amenities">
+                    Learn More
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
         </section>

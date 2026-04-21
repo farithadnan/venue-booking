@@ -42,9 +42,13 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-slate-700 pt-6 text-center text-xs text-slate-500">
-          <Link href="/login" className="text-slate-500 no-underline hover:text-slate-500">
-            © {new Date().getFullYear()} The Grand Hall at Majestic Place. All rights reserved.
+        <div className="mt-10 border-t border-slate-700 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <span>© {new Date().getFullYear()} The Grand Hall at Majestic Place. All rights reserved.</span>
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-1.5 rounded-md border border-slate-600 px-3 py-1.5 text-slate-400 hover:border-slate-400 hover:text-slate-200 transition-colors"
+          >
+            Admin Login
           </Link>
         </div>
       </div>

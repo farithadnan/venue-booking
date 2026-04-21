@@ -4,7 +4,7 @@ import { isAdminResult, requireAdmin } from '@/lib/auth'
 import { createBookingSchema, BOOKING_STATUSES } from '@/lib/validations'
 import { logger, newRequestId } from '@/lib/logger'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
-import { sendBookingConfirmation } from '@/lib/email'
+import { sendBookingConfirmation, sendAdminBookingNotification } from '@/lib/email'
 import { deriveBookingPrice } from '@/lib/utils'
 import type { NextRequest } from 'next/server'
 import type { TimeSlot, PaxPackage } from '@/types'
@@ -156,7 +156,8 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Internal server error' }, { status: 500 })
   }
 
-  const { data: booking, error: fetchError } = await supabase
+  const admin = createAdminClient()
+  const { data: booking, error: fetchError } = await admin
     .from('bookings')
     .select('*')
     .eq('id', bookingId)
@@ -167,8 +168,12 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Internal server error' }, { status: 500 })
   }
 
-  sendBookingConfirmation({ ...booking, venue_name: venue.name }).catch((err) =>
+  const bookingWithVenue = { ...booking, venue_name: venue.name }
+  sendBookingConfirmation(bookingWithVenue).catch((err) =>
     logger.error('Failed to send confirmation email', { requestId, error: String(err) })
+  )
+  sendAdminBookingNotification(bookingWithVenue).catch((err) =>
+    logger.error('Failed to send admin notification', { requestId, error: String(err) })
   )
 
   return Response.json(booking, { status: 201, headers: rateLimitHeaders(rl) })

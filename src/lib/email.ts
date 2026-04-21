@@ -85,6 +85,48 @@ export async function sendBookingStatusUpdate(
   })
 }
 
+export async function sendAdminBookingNotification(booking: Booking & { venue_name: string }): Promise<void> {
+  const to = env.ADMIN_NOTIFICATION_EMAIL
+  if (!to) return
+
+  const adminUrl = `${APP_URL}/admin`
+  const total = booking.total_price != null ? `RM ${Number(booking.total_price).toFixed(2)}` : '—'
+
+  const row = (label: string, value: string) =>
+    `<tr><td style="padding:8px 0;color:#666;width:180px;vertical-align:top">${label}</td><td style="padding:8px 0;font-weight:500">${value}</td></tr>`
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+      <div style="background:#f59e0b;padding:16px 24px;border-radius:8px 8px 0 0">
+        <h2 style="color:#fff;margin:0;font-size:18px">New Booking Request</h2>
+      </div>
+      <div style="border:1px solid #e2e8f0;border-top:none;padding:24px;border-radius:0 0 8px 8px">
+        <table style="width:100%;border-collapse:collapse">
+          ${row('Reference', escHtml(booking.reference_number))}
+          ${row('Guest Name', escHtml(booking.user_name))}
+          ${row('Email', escHtml(booking.user_email))}
+          ${row('Phone', escHtml(booking.user_phone ?? '—'))}
+          ${row('Venue', escHtml(booking.venue_name))}
+          ${row('Event', escHtml(booking.event_name))}
+          ${row('Date', escHtml(booking.date))}
+          ${row('Time', `${escHtml(booking.start_time)} – ${escHtml(booking.end_time)}`)}
+          ${row('Guests', booking.guest_count != null ? String(booking.guest_count) : '—')}
+          ${row('Package', escHtml(booking.pax_package_label ?? '—'))}
+          ${row('Total', total)}
+          ${booking.notes ? row('Notes', escHtml(booking.notes)) : ''}
+        </table>
+        <a href="${adminUrl}" style="display:inline-block;margin-top:20px;padding:12px 24px;background:#f59e0b;color:#fff;text-decoration:none;border-radius:6px;font-weight:600">Review in Dashboard</a>
+      </div>
+    </div>
+  `
+
+  await send({
+    to,
+    subject: `New Booking Request — ${booking.reference_number}`,
+    html,
+  })
+}
+
 function escHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')

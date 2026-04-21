@@ -23,14 +23,15 @@ export function DatePicker({ value, onChange, error }: DatePickerProps) {
           disabled={{ before: today }}
           captionLayout="dropdown"
           classNames={{
-            root: 'w-full',
-            months: 'flex flex-col',
+            root: 'relative w-full',
+            months: 'w-full',
             month: 'w-full',
-            month_caption: 'flex items-center justify-between px-1 pb-3',
-            dropdowns: 'flex items-center gap-2',
-            dropdown: 'border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-semibold text-slate-900 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500',
+            month_caption: 'flex items-center gap-2 pb-3 pl-[76px] pr-1',
+            dropdowns: 'flex items-center gap-1',
+            dropdown: 'appearance-none border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-semibold text-slate-900 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500',
             dropdown_root: 'relative',
-            nav: 'flex items-center gap-1',
+            caption_label: 'hidden',
+            nav: 'absolute top-0 left-0 flex items-center gap-1',
             button_previous: 'h-8 w-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center transition-colors',
             button_next: 'h-8 w-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center transition-colors',
             month_grid: 'w-full border-collapse',

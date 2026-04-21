@@ -70,9 +70,12 @@ export function BookingSummary({ date, slot, paxPackage }: BookingSummaryProps) 
           </div>
 
           {total !== null && (
-            <div className="border-t border-amber-200 pt-3 flex justify-between items-center">
-              <span className="font-bold text-slate-900">Total</span>
-              <span className="text-2xl font-bold text-amber-600">{formatCurrency(total)}</span>
+            <div className="border-t border-amber-200 pt-3 space-y-1">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-slate-900">Total</span>
+                <span className="text-2xl font-bold text-amber-600">{formatCurrency(total)}</span>
+              </div>
+              <p className="text-xs text-slate-400 text-right">Taxes &amp; charges not included</p>
             </div>
           )}
         </>

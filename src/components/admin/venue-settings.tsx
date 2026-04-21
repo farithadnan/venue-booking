@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Settings, Plus, Trash2, Save } from 'lucide-react'
+import Link from 'next/link'
+import { Settings, Plus, Trash2, Save, ArrowLeft } from 'lucide-react'
 import { toast } from '@/hooks/useToast'
 import { updateVenueSettings } from '@/services/venues'
 import type { TimeSlot, PaxPackage, Venue } from '@/types'
@@ -54,6 +55,9 @@ export function VenueSettings({ venue }: VenueSettingsProps) {
   return (
     <div className="space-y-8">
       <div>
+        <Link href="/admin/dashboard" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-amber-600 transition-colors mb-4">
+          <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+        </Link>
         <div className="flex items-center gap-2 mb-1">
           <Settings className="h-5 w-5 text-slate-600" />
           <h2 className="text-xl font-bold text-slate-900">Venue Settings</h2>
@@ -69,14 +73,18 @@ export function VenueSettings({ venue }: VenueSettingsProps) {
             <span>Label</span><span>Start</span><span>End</span><span>Price (RM)</span><span />
           </div>
           {slots.map((slot, i) => (
-            <div key={i} className="grid grid-cols-[1fr_90px_90px_100px_40px] gap-2 items-center rounded-lg bg-slate-50 px-3 py-2">
+            <div key={i} className="rounded-lg bg-slate-50 px-3 py-3 space-y-2 sm:space-y-0 sm:grid sm:grid-cols-[1fr_90px_90px_100px_40px] sm:gap-2 sm:items-center sm:py-2">
               <input value={slot.label} onChange={(e) => updateSlot(i, 'label', e.target.value)} placeholder="Label" className="h-8 w-full rounded border border-slate-200 bg-white px-2 text-sm" />
-              <input value={slot.start_time} onChange={(e) => updateSlot(i, 'start_time', e.target.value)} placeholder="08:00" className="h-8 w-full rounded border border-slate-200 bg-white px-2 text-sm" />
-              <input value={slot.end_time} onChange={(e) => updateSlot(i, 'end_time', e.target.value)} placeholder="12:00" className="h-8 w-full rounded border border-slate-200 bg-white px-2 text-sm" />
-              <input type="number" value={slot.price} onChange={(e) => updateSlot(i, 'price', Number(e.target.value))} className="h-8 w-full rounded border border-slate-200 bg-white px-2 text-sm" />
-              <button type="button" onClick={() => removeSlot(i)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition-colors">
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
+              <div className="grid grid-cols-2 gap-2 sm:contents">
+                <input value={slot.start_time} onChange={(e) => updateSlot(i, 'start_time', e.target.value)} placeholder="08:00" className="h-8 w-full rounded border border-slate-200 bg-white px-2 text-sm" />
+                <input value={slot.end_time} onChange={(e) => updateSlot(i, 'end_time', e.target.value)} placeholder="12:00" className="h-8 w-full rounded border border-slate-200 bg-white px-2 text-sm" />
+              </div>
+              <div className="flex items-center gap-2 sm:contents">
+                <input type="number" value={slot.price} onChange={(e) => updateSlot(i, 'price', Number(e.target.value))} className="h-8 flex-1 sm:w-full rounded border border-slate-200 bg-white px-2 text-sm" />
+                <button type="button" onClick={() => removeSlot(i)} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition-colors">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
           ))}
           <button type="button" onClick={addSlot} className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 py-2 text-sm text-slate-500 hover:border-amber-400 hover:text-amber-600 transition-colors">
@@ -93,14 +101,18 @@ export function VenueSettings({ venue }: VenueSettingsProps) {
             <span>Label</span><span>Min Pax</span><span>Max Pax</span><span>Price (RM)</span><span />
           </div>
           {packages.map((pkg, i) => (
-            <div key={i} className="grid grid-cols-[1fr_80px_80px_100px_40px] gap-2 items-center rounded-lg bg-slate-50 px-3 py-2">
+            <div key={i} className="rounded-lg bg-slate-50 px-3 py-3 space-y-2 sm:space-y-0 sm:grid sm:grid-cols-[1fr_80px_80px_100px_40px] sm:gap-2 sm:items-center sm:py-2">
               <input value={pkg.label} onChange={(e) => updatePackage(i, 'label', e.target.value)} placeholder="Label" className="h-8 w-full rounded border border-slate-200 bg-white px-2 text-sm" />
-              <input type="number" value={pkg.min_pax} onChange={(e) => updatePackage(i, 'min_pax', Number(e.target.value))} className="h-8 w-full rounded border border-slate-200 bg-white px-2 text-sm" />
-              <input type="number" value={pkg.max_pax} onChange={(e) => updatePackage(i, 'max_pax', Number(e.target.value))} className="h-8 w-full rounded border border-slate-200 bg-white px-2 text-sm" />
-              <input type="number" value={pkg.price} onChange={(e) => updatePackage(i, 'price', Number(e.target.value))} className="h-8 w-full rounded border border-slate-200 bg-white px-2 text-sm" />
-              <button type="button" onClick={() => removePackage(i)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition-colors">
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
+              <div className="grid grid-cols-2 gap-2 sm:contents">
+                <input type="number" value={pkg.min_pax} onChange={(e) => updatePackage(i, 'min_pax', Number(e.target.value))} className="h-8 w-full rounded border border-slate-200 bg-white px-2 text-sm" />
+                <input type="number" value={pkg.max_pax} onChange={(e) => updatePackage(i, 'max_pax', Number(e.target.value))} className="h-8 w-full rounded border border-slate-200 bg-white px-2 text-sm" />
+              </div>
+              <div className="flex items-center gap-2 sm:contents">
+                <input type="number" value={pkg.price} onChange={(e) => updatePackage(i, 'price', Number(e.target.value))} className="h-8 flex-1 sm:w-full rounded border border-slate-200 bg-white px-2 text-sm" />
+                <button type="button" onClick={() => removePackage(i)} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition-colors">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
           ))}
           <button type="button" onClick={addPackage} className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 py-2 text-sm text-slate-500 hover:border-amber-400 hover:text-amber-600 transition-colors">

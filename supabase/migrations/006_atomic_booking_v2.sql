@@ -16,6 +16,8 @@ CREATE OR REPLACE FUNCTION create_booking_atomic(
   p_pax_price         NUMERIC(10,2),
   p_total_price       NUMERIC(10,2)
 ) RETURNS UUID
+SECURITY DEFINER
+SET search_path = public
 LANGUAGE plpgsql AS $$
 DECLARE
   v_id UUID;
@@ -54,3 +56,5 @@ BEGIN
   RETURN v_id;
 END;
 $$;
+
+GRANT EXECUTE ON FUNCTION create_booking_atomic TO anon, authenticated;

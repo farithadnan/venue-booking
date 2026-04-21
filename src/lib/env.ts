@@ -6,6 +6,7 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
   RESEND_API_KEY: z.string().optional().transform((v) => v || undefined),
   RESEND_FROM_EMAIL: z.string().optional().transform((v) => v || undefined),
+  ADMIN_NOTIFICATION_EMAIL: z.string().optional().transform((v) => v || undefined),
   APP_URL: z.url().optional(),
 })
 
