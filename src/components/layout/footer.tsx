@@ -43,7 +43,9 @@ export function Footer() {
         </div>
 
         <div className="mt-10 border-t border-slate-700 pt-6 text-center text-xs text-slate-500">
-          © {new Date().getFullYear()} The Grand Hall at Majestic Place. All rights reserved.
+          <Link href="/login" className="text-slate-500 no-underline hover:text-slate-500">
+            © {new Date().getFullYear()} The Grand Hall at Majestic Place. All rights reserved.
+          </Link>
         </div>
       </div>
     </footer>
