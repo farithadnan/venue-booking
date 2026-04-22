@@ -9,6 +9,7 @@ A full-stack hall booking system where guests submit booking requests and an adm
 ## What the App Does
 
 ### Guest flow (no account required)
+
 1. Guest visits the landing page and browses venue information — capacity, amenities, time slot pricing, and guest packages.
 2. Guest clicks **Venue Details** to view the full venue detail page.
 3. Guest clicks **Book Your Event** and fills in the booking form: name, email, phone, event name, date, time slot, guest count (pax package), and optional notes. A live booking summary updates as they fill in the form.
@@ -18,6 +19,7 @@ A full-stack hall booking system where guests submit booking requests and an adm
 7. The admin is notified by email of the new booking (requires `ADMIN_NOTIFICATION_EMAIL` — see Environment Variables).
 
 ### Admin flow
+
 1. Admin navigates to `/admin/dashboard` — the proxy intercepts and redirects to `/login` if not authenticated. If already logged in, `/login` redirects straight to the dashboard.
 2. Admin logs in with email and password. Supabase sets a session cookie that persists across page loads.
 3. Admin views all bookings on the dashboard. Each booking shows guest name, email, phone, event name, date, time, guest count, package, total price, and status.
@@ -34,7 +36,7 @@ A full-stack hall booking system where guests submit booking requests and an adm
 
 ### File structure
 
-```
+```md
 src/
   app/
     api/v1/                   ← all API routes (versioned)
@@ -84,10 +86,10 @@ supabase/
 
 ### Two Supabase clients — why
 
-| Client | Key used | Bypasses RLS | When to use |
-|--------|----------|--------------|-------------|
-| `createClient()` — `lib/supabase/server.ts` | Anon key | No | Auth checks, public reads (venues), booking insert via RPC |
-| `createAdminClient()` — `lib/supabase/admin.ts` | Service role key | Yes | All admin operations, post-insert booking fetch |
+| Client                                          | Key used         | Bypasses RLS | When to use                                                                |
+| ----------------------------------------------- | ---------------- | ------------ | -------------------------------------------------------------------------- |
+| `createClient()` — `lib/supabase/server.ts`     | Anon key         | No           | Auth checks, public reads (venues), booking insert via RPC                 |
+| `createAdminClient()` — `lib/supabase/admin.ts` | Service role key | Yes          | All admin operations, post-insert booking fetch                            |
 
 The anon key is public (`NEXT_PUBLIC_`). RLS on `bookings` restricts SELECT to the service role so someone with the anon key cannot enumerate booking records directly via the Supabase REST endpoint.
 
@@ -114,12 +116,13 @@ All routes are under `/api/v1/`. Errors always return `{ "error": "..." }`.
 ### Auth
 
 #### `POST /api/v1/auth/login`
+
 Admin login. Sets a session cookie on success.
 
-**Body**
 ```json
 { "email": "admin@example.com", "password": "..." }
 ```
+
 **200** `{ "user": { "id": "...", "email": "..." } }`
 **401** Invalid credentials
 **403** Valid credentials but not an admin
@@ -128,6 +131,7 @@ Admin login. Sets a session cookie on success.
 ---
 
 #### `POST /api/v1/auth/logout`
+
 Clears the admin session cookie.
 
 **200** `{ "success": true }`
@@ -137,6 +141,7 @@ Clears the admin session cookie.
 ### Venues
 
 #### `GET /api/v1/venues`
+
 List all venues. Public.
 
 **200** `Venue[]`
@@ -144,6 +149,7 @@ List all venues. Public.
 ---
 
 #### `GET /api/v1/venues/:id`
+
 Get a single venue. Public.
 
 **200** `Venue`
@@ -152,15 +158,16 @@ Get a single venue. Public.
 ---
 
 #### `PATCH /api/v1/venues/:id`
+
 Update venue time slots and guest packages. **Admin only.**
 
-**Body**
 ```json
 {
   "time_slots": [{ "label": "Morning", "start_time": "08:00", "end_time": "12:00", "price": 2000 }],
   "pax_packages": [{ "label": "Small", "min_pax": 50, "max_pax": 200, "price": 1000 }]
 }
 ```
+
 **200** Updated `Venue`
 **401 / 403** Auth
 
@@ -169,9 +176,9 @@ Update venue time slots and guest packages. **Admin only.**
 ### Bookings
 
 #### `POST /api/v1/bookings`
+
 Submit a booking request. Public. Rate-limited: 10 requests / 15 min per IP.
 
-**Body**
 ```json
 {
   "venue_id": "uuid",
@@ -187,6 +194,7 @@ Submit a booking request. Public. Rate-limited: 10 requests / 15 min per IP.
   "notes": "string (optional, max 1000 chars)"
 }
 ```
+
 **201** `Booking` (includes `reference_number` and derived pricing)
 **404** Venue not found
 **409** Time slot already booked
@@ -196,6 +204,7 @@ Submit a booking request. Public. Rate-limited: 10 requests / 15 min per IP.
 ---
 
 #### `GET /api/v1/bookings/lookup?reference=VB-xxx`
+
 Look up a booking by reference number. Public. Rate-limited: 20 requests / 15 min per IP.
 
 **200** `Booking`
@@ -205,6 +214,7 @@ Look up a booking by reference number. Public. Rate-limited: 20 requests / 15 mi
 ---
 
 #### `GET /api/v1/bookings/:id`
+
 Get a single booking by UUID. Public (UUID is the access secret).
 
 **200** `Booking` with nested `venue { id, name, location }`
@@ -213,10 +223,11 @@ Get a single booking by UUID. Public (UUID is the access secret).
 ---
 
 #### `GET /api/v1/bookings?status=&page=&limit=`
+
 List all bookings. **Admin only.**
 
 | Param | Default | Notes |
-|-------|---------|-------|
+| ----- | ------- | ----- |
 | `status` | — | Filter: `pending`, `approved`, or `rejected` |
 | `page` | 1 | 1-indexed |
 | `limit` | 20 | Max 100 |
@@ -227,6 +238,7 @@ List all bookings. **Admin only.**
 ---
 
 #### `PATCH /api/v1/bookings/:id`
+
 Approve or reject a booking. **Admin only.** Only `pending` bookings can be actioned.
 
 **Body** `{ "status": "approved" | "rejected" }`
@@ -241,8 +253,9 @@ Approve or reject a booking. **Admin only.** Only `pending` bookings can be acti
 ## Database Schema
 
 ### `venues`
+
 | Column | Type | Notes |
-|--------|------|-------|
+| ------ | ---- | ----- |
 | id | uuid PK | |
 | name | text | |
 | description | text | |
@@ -256,8 +269,9 @@ Approve or reject a booking. **Admin only.** Only `pending` bookings can be acti
 | created_at | timestamptz | |
 
 ### `bookings`
+
 | Column | Type | Notes |
-|--------|------|-------|
+| ------ | ---- | ----- |
 | id | uuid PK | |
 | venue_id | uuid FK → venues | ON DELETE RESTRICT |
 | user_name | text | |
@@ -278,8 +292,9 @@ Approve or reject a booking. **Admin only.** Only `pending` bookings can be acti
 | created_at | timestamptz | |
 
 ### `booking_status_history`
+
 | Column | Type | Notes |
-|--------|------|-------|
+| ------ | ---- | ----- |
 | id | uuid PK | |
 | booking_id | uuid FK → bookings | ON DELETE CASCADE |
 | from_status | text | null on first transition |
@@ -299,7 +314,8 @@ Approve or reject a booking. **Admin only.** Only `pending` bookings can be acti
    - **anon public** key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - **service_role secret** key → `SUPABASE_SERVICE_ROLE_KEY`
 3. Go to the **SQL Editor** and run each migration file in order:
-   ```
+
+   ```text
    supabase/migrations/001_schema.sql
    supabase/migrations/002_rls.sql
    supabase/migrations/003_booking_history.sql
@@ -307,13 +323,17 @@ Approve or reject a booking. **Admin only.** Only `pending` bookings can be acti
    supabase/migrations/005_pricing.sql
    supabase/migrations/006_atomic_booking_v2.sql
    ```
+
 4. Go to **Authentication → Users → Add user** and create the admin account.
 5. After creating the user, open the user record and click **Edit**. Under **Custom Claims / app_metadata**, add:
+
    ```json
    { "role": "admin" }
    ```
+
    Save. This grants admin access to that account.
 6. Add the first venue row via the **SQL Editor**:
+
    ```sql
    INSERT INTO venues (name, description, capacity, price_per_hour, location, amenities, images)
    VALUES (
@@ -326,6 +346,7 @@ Approve or reject a booking. **Admin only.** Only `pending` bookings can be acti
      ARRAY['https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1600']
    );
    ```
+
    Replace the Unsplash URL with any public image URL you want shown on the homepage.
 7. Log in to the admin panel (`/login`) and go to **Venue Settings** to set time slots and guest packages. Pricing will not appear on the homepage until this is done.
 
@@ -339,7 +360,7 @@ Approve or reject a booking. **Admin only.** Only `pending` bookings can be acti
 4. Before clicking **Deploy**, open **Environment Variables** and add:
 
    | Variable | Value |
-   |----------|-------|
+   | -------- | ----- |
    | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your anon public key |
    | `SUPABASE_SERVICE_ROLE_KEY` | Your service role secret key |
@@ -364,15 +385,17 @@ To enable:
 2. Go to **Domains** and add your sending domain (e.g. `yourdomain.com`). Follow the DNS verification steps. Alternatively, use Resend's shared `onresend.dev` domain for testing (no DNS setup needed).
 3. Go to **API Keys** and create a key. Copy it to `RESEND_API_KEY`.
 4. Set `RESEND_FROM_EMAIL` to a verified sender address, e.g.:
-   ```
+
+   ```text
    The Grand Hall <noreply@yourdomain.com>
    ```
+
 5. Set `ADMIN_NOTIFICATION_EMAIL` to the email address that should receive new booking alerts (e.g. the hall manager's email).
 
 **Emails sent by the app:**
 
 | Trigger | Recipient | Content |
-|---------|-----------|---------|
+| ------- | --------- | ------- |
 | New booking submitted | Guest | Booking confirmation with reference number and details |
 | New booking submitted | Admin (`ADMIN_NOTIFICATION_EMAIL`) | Full booking details with link to dashboard |
 | Admin approves booking | Guest | Approval confirmation |

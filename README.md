@@ -20,7 +20,7 @@ npm run dev                  # http://localhost:3000
 
 Apply database migrations in the Supabase dashboard SQL Editor (in order):
 
-```
+```md
 supabase/migrations/001_schema.sql
 supabase/migrations/002_rls.sql
 supabase/migrations/003_booking_history.sql
